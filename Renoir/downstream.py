@@ -255,23 +255,24 @@ def downstream_analysis(
         # Perform clustering over PCs and neighborhood scores
     sc.pp.highly_variable_genes(pcs, n_top_genes=n_top_genes_pcs)
     sc.pp.highly_variable_genes(neighbscore_copy, n_top_genes=n_top_genes)
-    sc.pp.scale(pcs)
+    pcs_copy = pcs.copy()
+    sc.pp.scale(pcs_copy)
     sc.pp.scale(neighbscore_copy)
-    sc.tl.pca(pcs)
+    sc.tl.pca(pcs_copy)
     sc.tl.pca(neighbscore_copy)
-    sc.pp.neighbors(pcs, n_neighbors=20, n_pcs=pcs.varm["PCs"].shape[1])
+    sc.pp.neighbors(pcs_copy, n_neighbors=20, n_pcs=pcs_copy.varm["PCs"].shape[1])
     sc.pp.neighbors(neighbscore_copy, n_neighbors=20, n_pcs=neighbscore_copy.varm["PCs"].shape[1])
-    # sc.tl.leiden(pcs, resolution = 0.3)
+    # sc.tl.leiden(pcs_copy, resolution = 0.3)
     sc.tl.leiden(neighbscore_copy, resolution=resolution)
-    sc.tl.umap(pcs)
+    sc.tl.umap(pcs_copy)
     sc.tl.umap(neighbscore_copy)
     # Set cluster labels of neighborhood scores to PCs
-    pcs.uns["leiden"] = neighbscore_copy.uns["leiden"]
+    pcs_copy.uns["leiden"] = neighbscore_copy.uns["leiden"]
     # Setup pdf to store images
     if pdf_path is not None:
         # raise "ERROR: pdf_path arg is None. Path to save pdf missing."
         # Plot UMAP / Spatial plot
-        temp_fig = sc.pl.umap(pcs, components="all", color="leiden", return_fig=True, show=False)
+        temp_fig = sc.pl.umap(pcs_copy, components="all", color="leiden", return_fig=True, show=False)
         temp_fig.set_size_inches(25, 25)
         pdf.savefig(temp_fig)
         plt.close()
@@ -323,12 +324,12 @@ def downstream_analysis(
         plt.close()
         pdf.close()
     if return_cluster and return_pcs:
-        return neighbscore_copy, pcs
+        return neighbscore_copy, pcs_copy
     else:
         if return_cluster:
             return neighbscore_copy
         if return_pcs:
-            return pcs
+            return pcs_copy
 
 
 def spot_v_spot(
