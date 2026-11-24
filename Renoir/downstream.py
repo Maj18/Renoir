@@ -177,6 +177,7 @@ def downstream_analysis(
     pdf_path=None,
     return_cluster=False,
     return_pcs=False,
+    n_top_genes = 2000
 ):
     """Performs leiden clustering over neighborhood scores, generates DE ligand-target pairs for each domain, finds top n highly expressed pairs across each domain and converts pathway/De novo cluster scores into AnnData objects. (Note: This function executes default DE analysis as is mentioned in scanpy docs. For more flexibility, it is recommended for users to perform analysis over generated neighborhood scores manually with the help of scanpy)
 
@@ -211,7 +212,7 @@ def downstream_analysis(
         pcs[cluster] = list(pca.fit_transform(neighbscore_df.loc[ltpairs,].T)[:, 0])
     pcs = pd.DataFrame.from_dict(pcs, orient="index")
     pcs.columns = neighbscore.obs_names
-    pcs = pcs.applymap(abs)
+    pcs = pcs.map(abs) # pcs.applymap(abs)
     # pcs = pcs.apply(min_max, axis=1)
     pcs.fillna(0, inplace=True)
     neighbscore_copy = sc.AnnData(neighbscore_df.T).copy()
@@ -251,8 +252,8 @@ def downstream_analysis(
             pdf.savefig(temp_fig)
             plt.close()
         # Perform clustering over PCs and neighborhood scores
-    sc.pp.highly_variable_genes(pcs, n_top_genes=2000)
-    sc.pp.highly_variable_genes(neighbscore_copy, n_top_genes=2000)
+    sc.pp.highly_variable_genes(pcs, n_top_genes=n_top_genes)
+    sc.pp.highly_variable_genes(neighbscore_copy, n_top_genes=n_top_genes)
     sc.pp.scale(pcs)
     sc.pp.scale(neighbscore_copy)
     sc.tl.pca(pcs)
