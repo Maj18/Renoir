@@ -1136,7 +1136,7 @@ def ligand_ranking(
     g.fig.axes[-1].set_position([0.83, pos_joint_ax.y0, 0.07, pos_joint_ax.height])
 
     # celltype bar plot for ligands
-    ct_bar_plot = pd.DataFrame(0, columns=top_celltypes, index=ligand_score_df.index)
+    ct_bar_plot = pd.DataFrame(0.0, columns=top_celltypes, index=ligand_score_df.index)
     for col in ct_bar_plot.columns:
         for row in ct_bar_plot.index:
             if col in ct_spec_mark["ligand"][row]:
@@ -1153,7 +1153,7 @@ def ligand_ranking(
         )
 
     # celltype bar plot for targets
-    ct_bar_plot = pd.DataFrame(0, columns=top_celltypes, index=list(ligand_score_df.columns)[1:])
+    ct_bar_plot = pd.DataFrame(0.0, columns=top_celltypes, index=list(ligand_score_df.columns)[1:])
     for col in ct_bar_plot.columns:
         for row in ct_bar_plot.index:
             if row in ct_spec_mark["target"][col]:
