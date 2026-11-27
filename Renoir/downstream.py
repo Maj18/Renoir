@@ -899,8 +899,7 @@ def ligand_ranking(
     markers={"top": 100},
     domain_celltypes=["top", 5],
     celltype_colors={"auto": True},
-    ligand_celltypes=None,
-    target_celltypes=None
+    ligand_to_plot=None
 ):
     """_summary_
 
@@ -993,10 +992,10 @@ def ligand_ranking(
     for index in range(len(ligands)):
         ligand = ligands[index]
         target = targets[index]
-        if ligand_celltypes is None:
-            ligand_celltypes = list(markers.columns[markers.isin([ligand]).any()])
-        if target_celltypes is None:
-            target_celltypes = list(markers.columns[markers.isin([target]).any()])
+        # if ligand_celltypes is None:
+        ligand_celltypes = list(markers.columns[markers.isin([ligand]).any()])
+        # if target_celltypes is None:
+        target_celltypes = list(markers.columns[markers.isin([target]).any()])
         if len(ligand_celltypes) >= 1:
             ct_spec_mark["ligand"][ligand] = []
             for ctl in ligand_celltypes:
@@ -1034,7 +1033,23 @@ def ligand_ranking(
                 (temp.select_dtypes(include=["number"]) != 0).any(axis=1)
             ].index  # spots = temp[(temp.select_dtypes(include=['number']) != 0).all(1)].index
             ligand_score[ligand][target] = neighbscore_df.loc[spots, ligand + ":" + target].mean()
+    # Optionally keep only the requested ligands
+    if ligands_to_plot is not None:
+        requested_ligands = set(ligands_to_plot)
+        available_ligands = set(ligand_score)
 
+        missing_ligands = requested_ligands - available_ligands
+        if missing_ligands:
+            print(
+                "Requested ligands not found or not eligible: "
+                f"{sorted(missing_ligands)}"
+            )
+
+        ligand_score = {
+            ligand: scores
+            for ligand, scores in ligand_score.items()
+            if ligand in requested_ligands
+        }
     targets = []
     for ligand in ligand_score.keys():
         for target in ligand_score[ligand].keys():
