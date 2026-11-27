@@ -989,6 +989,7 @@ def ligand_ranking(
     
     # Filtering celltypes
     ligands, targets = zip(*(s.split(":") for s in neighbscore.var_names))
+    ct_spec_mark = {"ligand": {}, "target": {}}
     # Initialize target markers for all selected cell types
     for ct in markers.columns:
         ct_spec_mark["target"][ct] = []
