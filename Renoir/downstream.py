@@ -901,7 +901,7 @@ def ligand_ranking(
     celltype_colors={"auto": True},
     ligand_celltypes=None,
     target_celltypes=None,
-    ligand_to_plot=None
+    ligands_to_plot=None
 ):
     """_summary_
 
