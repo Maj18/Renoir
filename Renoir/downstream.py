@@ -899,6 +899,8 @@ def ligand_ranking(
     markers={"top": 100},
     domain_celltypes=["top", 5],
     celltype_colors={"auto": True},
+    ligand_celltypes=None,
+    target_celltypes=None,
     ligand_to_plot=None
 ):
     """_summary_
@@ -984,27 +986,54 @@ def ligand_ranking(
                 if np.count_nonzero(temp) / len(temp) >= receptor_exp:
                     receptors[receptor].append(ct)
 
+    
+    # Filtering celltypes
     ligands, targets = zip(*(s.split(":") for s in neighbscore.var_names))
-    ct_spec_mark = {"ligand": {}, "target": {}}
-    for i in markers.columns:
-        ct_spec_mark["target"][i] = []
+    # Initialize target markers for all selected cell types
+    for ct in markers.columns:
+        ct_spec_mark["target"][ct] = []
 
-    for index in range(len(ligands)):
-        ligand = ligands[index]
-        target = targets[index]
-        # if ligand_celltypes is None:
-        ligand_celltypes = list(markers.columns[markers.isin([ligand]).any()])
-        # if target_celltypes is None:
-        target_celltypes = list(markers.columns[markers.isin([target]).any()])
-        if len(ligand_celltypes) >= 1:
-            ct_spec_mark["ligand"][ligand] = []
-            for ctl in ligand_celltypes:
-                ct_spec_mark["ligand"][ligand].append(ctl)
-        if len(target_celltypes) >= 1:
-            for ctt in target_celltypes:
-                if target not in ct_spec_mark["target"][ctt]:
-                    ct_spec_mark["target"][ctt].append(target)
+    # Use all selected cell types for ligand markers if no restriction was given
+    if ligand_celltypes is None:
+        allowed_ligand_celltypes = list(markers.columns)
+    else:
+        allowed_ligand_celltypes = list(ligand_celltypes)
+        unknown = set(allowed_ligand_celltypes) - set(markers.columns)
+        if unknown:
+            raise ValueError(
+                f"Unknown cell types in ligand_celltypes: {sorted(unknown)}"
+            )
 
+    # Target cell types are inferred from markers unless explicitly specified
+    if target_celltypes is None:
+        allowed_target_celltypes = list(markers.columns)
+    else:
+        allowed_target_celltypes = list(target_celltypes)
+        unknown = set(allowed_target_celltypes) - set(markers.columns)
+        if unknown:
+            raise ValueError(
+                f"Unknown cell types in target_celltypes: {sorted(unknown)}"
+            )
+
+    for ligand, target in zip(ligands, targets):
+        # Keep a ligand only if it is a marker in an allowed ligand cell type
+        ligand_marker_celltypes = [
+            ct for ct in allowed_ligand_celltypes
+            if markers[ct].eq(ligand).any()
+        ]
+        if ligand_marker_celltypes:
+            ct_spec_mark["ligand"][ligand] = ligand_marker_celltypes
+
+        # Assign target markers independently of ligand_celltypes
+        target_marker_celltypes = [
+            ct for ct in allowed_target_celltypes
+            if markers[ct].eq(target).any()
+        ]
+        for ct in target_marker_celltypes:
+            if target not in ct_spec_mark["target"][ct]:
+                ct_spec_mark["target"][ct].append(target)
+
+    
     # For each domain find score for each ligand and target and its corresponding celltype
     lrt_dict = {}
     for i, row in ligand_receptor_pairs.iterrows():
