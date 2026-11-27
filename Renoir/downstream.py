@@ -899,6 +899,7 @@ def ligand_ranking(
     markers={"top": 100},
     domain_celltypes=["top", 5],
     celltype_colors={"auto": True},
+    ligand_celltypes=None
 ):
     """_summary_
 
@@ -991,7 +992,10 @@ def ligand_ranking(
     for index in range(len(ligands)):
         ligand = ligands[index]
         target = targets[index]
-        ligand_celltypes = list(markers.columns[markers.isin([ligand]).any()])
+        if ligand_celltypes is None:
+            ligand_celltypes = list(markers.columns[markers.isin([ligand]).any()])
+        else:
+            ligand_celltypes = ligand_celltypes
         target_celltypes = list(markers.columns[markers.isin([target]).any()])
         if len(ligand_celltypes) >= 1:
             ct_spec_mark["ligand"][ligand] = []
