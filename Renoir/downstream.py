@@ -995,14 +995,8 @@ def ligand_ranking(
         target = targets[index]
         if ligand_celltypes is None:
             ligand_celltypes = list(markers.columns[markers.isin([ligand]).any()])
-        else:
-            ligand_celltypes = ligand_celltypes
-            
         if target_celltypes is None:
             target_celltypes = list(markers.columns[markers.isin([target]).any()])
-        else:
-            target_celltypes = target_celltypes
-            
         if len(ligand_celltypes) >= 1:
             ct_spec_mark["ligand"][ligand] = []
             for ctl in ligand_celltypes:
